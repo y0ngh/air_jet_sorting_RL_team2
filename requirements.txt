@@ -1,0 +1,14 @@
+numpy
+scipy
+matplotlib
+pandas
+pyyaml
+tqdm
+imageio
+imageio-ffmpeg
+gymnasium
+stable-baselines3
+tensorboard
+streamlit
+plotly
+pillow

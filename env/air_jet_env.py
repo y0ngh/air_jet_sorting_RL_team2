@@ -271,11 +271,18 @@ class AirJetSortingEnv(gym.Env):
 
     def _action_to_jet_params(self, action: np.ndarray) -> Dict[str, float]:
         action = np.asarray(action, dtype=np.float32).reshape(-1)
+        umax = self.action_ranges["umax"].scale_from_unit_action(action[0])
+        duration = self.action_ranges["duration"].scale_from_unit_action(action[3])
+        constraints = self.config.get("action_constraints", {})
+        max_umax2_duration = constraints.get("max_umax2_duration")
+        if max_umax2_duration is not None and umax > 1.0e-8:
+            duration = min(duration, float(max_umax2_duration) / (umax * umax))
+
         return {
-            "umax": self.action_ranges["umax"].scale_from_unit_action(action[0]),
+            "umax": umax,
             "sigma": self.action_ranges["sigma"].scale_from_unit_action(action[1]),
             "t_on": self.action_ranges["t_on"].scale_from_unit_action(action[2]),
-            "duration": self.action_ranges["duration"].scale_from_unit_action(action[3]),
+            "duration": duration,
         }
 
     def _run_simulation(self, case: Dict[str, Any], jet_params: Dict[str, float]) -> Dict[str, Any]:
@@ -327,7 +334,7 @@ class AirJetSortingEnv(gym.Env):
         target = TargetRegion3D(x_min=case["target_x_min"], x_max=case["target_x_max"])
 
         try:
-            return simulate_rigid_body_3d(
+            result = simulate_rigid_body_3d(
                 obj=obj,
                 jet=jet,
                 sim=sim,
@@ -335,6 +342,13 @@ class AirJetSortingEnv(gym.Env):
                 target=target,
                 seed=case["seed"],
             )
+            max_angular_speed = float(result.get("max_angular_speed", 0.0))
+            angular_failure_limit = float(self.config["simulation"].get("max_angular_speed_limit", 800.0))
+            if (not np.isfinite(max_angular_speed)) or max_angular_speed > angular_failure_limit:
+                raise FloatingPointError(
+                    f"max_angular_speed exceeded limit: {max_angular_speed:.6g} > {angular_failure_limit:.6g}"
+                )
+            return result
         except (FloatingPointError, OverflowError, ValueError, np.linalg.LinAlgError) as exc:
             # Very strong jets can occasionally make the rigid-body integrator
             # numerically unstable. Treat that trial as a failed action instead

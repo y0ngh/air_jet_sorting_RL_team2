@@ -462,9 +462,9 @@ def create_object_3d(
             lx=size_x,
             ly=size_y,
             lz=size_z,
-            nx=10,
-            ny=10,
-            nz=9,
+            nx=7,
+            ny=7,
+            nz=6,
         )
         inertia = compute_box_inertia(mass, size_x, size_y, size_z)
 
@@ -495,9 +495,9 @@ def create_object_3d(
         points, normals, areas = create_surface_grid_rod(
             length=rod_length,
             radius=rod_radius,
-            n_length=17,
-            n_theta=16,
-            n_cap_rings=9,
+            n_length=12,
+            n_theta=12,
+            n_cap_rings=6,
         )
         inertia = compute_cylinder_inertia_x_axis(mass, rod_length, rod_radius)
 
@@ -522,7 +522,7 @@ def create_object_3d(
             lx=size_x,
             ly=size_y,
             lz=size_z,
-            n_points=560,
+            n_points=280,
             seed=seed,
         )
         inertia = compute_box_inertia(mass, size_x, size_y, size_z)
@@ -730,14 +730,19 @@ def compute_jet_forces_and_torque(
     normal_speed = np.sum(u_rel * normals_world, axis=1)
     incoming = active & (normal_speed < 0.0)
 
-    local_forces[incoming] = (
-        0.5
-        * sim.air_density
-        * obj.drag_coefficient
-        * obj.area_weights[incoming, None]
-        * normal_speed[incoming, None] ** 2
-        * (-normals_world[incoming])
-    )
+    if np.any(incoming):
+        force_magnitude = (
+            0.5
+            * sim.air_density
+            * obj.drag_coefficient
+            * obj.area_weights[incoming]
+            * normal_speed[incoming] ** 2
+        )
+        jet_direction = get_jet_direction(jet)
+        mixed_direction = normalize_vectors(
+            0.2 * (-normals_world[incoming]) + 0.8 * jet_direction[None, :]
+        )
+        local_forces[incoming] = force_magnitude[:, None] * mixed_direction
 
     total_force = np.sum(local_forces, axis=0)
     local_torques = np.cross(r_vectors, local_forces)

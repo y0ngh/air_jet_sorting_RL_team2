@@ -1,0 +1,99 @@
+{
+  "experiment_name": "force_revised_n02_f08_target05_10_jetx016_z016_env8_100k",
+  "seed": 42,
+  "total_timesteps": 100000,
+  "eval_episodes": 50,
+  "ppo": {
+    "device": "cpu",
+    "learning_rate": 0.0003,
+    "n_steps": 128,
+    "batch_size": 64,
+    "n_epochs": 10,
+    "gamma": 0.99,
+    "gae_lambda": 0.95,
+    "clip_range": 0.2,
+    "policy_kwargs": {
+      "net_arch": {
+        "pi": [
+          128,
+          128
+        ],
+        "vf": [
+          128,
+          128
+        ]
+      }
+    }
+  },
+  "env": {
+    "fixed_jet": {
+      "x_center": 0.16,
+      "y_center": 0.0,
+      "z_center": 0.16,
+      "axial_decay": 0.35,
+      "angle_deg": 60.0,
+      "azimuth_deg": 0.0,
+      "noise_std": 0.0
+    },
+    "ranges": {
+      "y0": [
+        0.0,
+        0.0
+      ],
+      "z0": [
+        0.2,
+        0.2
+      ],
+      "vx": [
+        1.0,
+        1.0
+      ],
+      "target_x_min": [
+        0.5,
+        0.5
+      ],
+      "target_width": [
+        0.5,
+        0.5
+      ]
+    },
+    "action_ranges": {
+      "umax": [
+        10.0,
+        30.0
+      ],
+      "sigma": [
+        0.01,
+        0.09
+      ],
+      "t_on": [
+        0.0,
+        0.5
+      ],
+      "duration": [
+        0.01,
+        0.15
+      ]
+    },
+    "simulation": {
+      "dt": 0.001,
+      "t_max": 2.0,
+      "gravity": 9.81,
+      "air_density": 1.225,
+      "landing_z": 0.0,
+      "conveyor_length": 0.15,
+      "free_fall_start_offset": 0.03
+    },
+    "reward": {
+      "center_distance_weight": 1.0,
+      "short_distance_weight": 5.0,
+      "long_distance_weight": 3.0,
+      "x_error_normalization_width": 0.5,
+      "x_error_clip": 3.0,
+      "min_reward": -30.0,
+      "jet_cost_weight": 0.4,
+      "angular_speed_weight": 0.01
+    }
+  },
+  "n_envs": 8
+}

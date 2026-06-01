@@ -8,21 +8,23 @@ checkpoints are intentionally excluded.
 
 ## Current Experiment
 
-Active config:
+Active revised-force config:
 
 ```bash
-configs/fixed_y0_z020_vx100_target04_09_relaxed_reward_env8_100k.json
+configs/force_revised_n02_f08_target05_10_jetx016_z016_env8_100k.json
 ```
 
 Key settings:
 
 - Initial position: `y0 = 0`, `z0 = 0.20 m`
 - Initial velocity: `vx = 1.0 m/s`, `vy = 0`, `vz = 0`
-- Target region: `x = 0.4 ~ 0.9 m`
-- Fixed jet position: `x = 0.105 m`, `y = 0`, `z = 0.21 m`
+- Target region: `x = 0.5 ~ 1.0 m`
+- Fixed jet position: `x = 0.16 m`, `y = 0`, `z = 0.16 m`
 - Jet angle: `60 deg`
 - PPO action variables: `umax`, `sigma`, `t_on`, `duration`
-- Current `umax` range: `0 ~ 30 m/s`
+- Current `umax` range: `10 ~ 30 m/s`
+- Jet force law: `0.2 * normal_pressure_direction + 0.8 * flow_direction`
+- Reduced surface samples: plate `266`, rod `288`, irregular `280`
 
 ## Repository Layout
 
@@ -49,7 +51,7 @@ python -m pip install -r requirements.txt
 
 ```bash
 env PYTHONNOUSERSITE=1 rl_env/bin/python train/train_ppo.py \
-  --config configs/fixed_y0_z020_vx100_target04_09_relaxed_reward_env8_100k.json \
+  --config configs/force_revised_n02_f08_target05_10_jetx016_z016_env8_100k.json \
   --n-envs 8
 ```
 
@@ -62,7 +64,7 @@ results/rl/<experiment_name>_<YYYYMMDD_HHMMSS>/
 ## Evaluate
 
 ```bash
-RUN=$(ls -td results/rl/fixed_y0_z020_vx100_target04_09_relaxed_reward_env8_100k_* | head -1)
+RUN=$(ls -td results/rl/force_revised_n02_f08_target05_10_jetx016_z016_env8_100k_* | head -1)
 echo "$RUN"
 
 env PYTHONNOUSERSITE=1 rl_env/bin/python eval/analyze_policy_actions.py \
@@ -91,5 +93,6 @@ env PYTHONNOUSERSITE=1 rl_env/bin/python -m streamlit run simulator/simulator_ap
 - GPU acceleration is usually not the bottleneck here because each RL step runs
   a NumPy-based rigid-body simulation.
 - `results/`, `rl_env/`, checkpoints, TensorBoard logs, and cache files are ignored.
-- The `umax=0~40` experiment is not included here; this repo is the latest `umax=0~30`
-  version requested for team editing.
+- Model checkpoints are not included. Train locally to generate `results/rl/.../models/`.
+- Additional revised configs are included for target/jet-position comparisons:
+  `target05_10_jetx018_z014` and `target10_15_jetx016_z016`.
